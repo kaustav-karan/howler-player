@@ -13,15 +13,11 @@ import { ScrollingText } from "./scrollingText";
 interface Song {
   id: string;
   title: string;
-  artist: string;
+  publisherName: string;
   manifestUri: string;
 }
 
-export function 
-
-
-
-  SongList() {
+export function SongList() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [queue, setQueue] = useState<Song[]>([]);
   const [isUsingCustomQueue, setIsUsingCustomQueue] = useState(false);
@@ -37,7 +33,7 @@ export function
   const fetchSongs = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:3000/getAllTrack");
+      const response = await fetch("http://192.168.137.1:3000/getAllTrack");
       if (!response.ok) throw new Error("Server is down");
       const data = await response.json();
       setSongs(data);
@@ -127,96 +123,99 @@ export function
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4">
-      {/* Song List */}
-      <div className="w-full md:w-1/3 h-[60vh] md:h-[90vh] overflow-y-auto">
+    <div className="flex flex-col md:flex-row gap-4 p-4 h-[calc(100vh-2rem)]">
+      {/* Song List - Fixed height with internal scrolling */}
+      <div className="w-full md:w-1/3 h-[70vh] flex flex-col">
         <h2 className="text-xl font-bold mb-4">All Songs</h2>
-        <div className="grid grid-cols-1 gap-2">
-          {songs.map((song) => (
-            <ContextMenu key={song.id}>
-              <ContextMenuTrigger>
-                <Card
-                  className={`p-4 cursor-pointer hover:bg-muted rounded-2xl border-2 transition-colors ${
-                    currentSong?.id === song.id ? 'bg-muted/50' : 'bg-gradient-to-b from-background to-muted/10'
-                  }`}
-                  onClick={() => handleSongSelect(song)}
-                >
-                  <CardContent className="grid grid-cols-3 gap-2 p-0">
-                    <div className="col-span-1">
-                      <img
-                        src="https://i1.sndcdn.com/artworks-000012560643-t526va-t500x500.jpg"
-                        className="w-full rounded-lg"
-                        alt={`${song.title} cover`}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <ScrollingText 
-                        text={song.title} 
-                        className="text-lg font-bold" 
-                        width="100%"
-                      />
-                      <ScrollingText 
-                        text={song.artist} 
-                        className="text-sm text-muted-foreground" 
-                        width="100%"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </ContextMenuTrigger>
-
-              <ContextMenuContent>
-                {customQueue.some((q) => q.id === song.id) ? (
-                  <ContextMenuItem onClick={() => removeFromPlayList(song.id)}>
-                    Remove from Liked Songs
-                  </ContextMenuItem>
-                ) : (
-                  <ContextMenuItem onClick={() => addToPlayList(song.id)}>
-                    Add to Liked Songs
-                  </ContextMenuItem>
-                )}
-              </ContextMenuContent>
-            </ContextMenu>
-          ))}
+        <div className="flex-1 overflow-y-auto pr-2"> {/* Added padding to prevent scrollbar overlap */}
+          <div className="grid grid-cols-1 gap-2">
+            {songs.map((song) => (
+              <ContextMenu key={song.id}>
+                <ContextMenuTrigger>
+                  <Card
+                    className={`p-4 cursor-pointer hover:bg-muted rounded-2xl border-2 transition-colors ${
+                      currentSong?.id === song.id ? 'bg-muted/50' : 'bg-gradient-to-b from-background to-muted/10'
+                    }`}
+                    onClick={() => handleSongSelect(song)}
+                  >
+                    <CardContent className="grid grid-cols-3 gap-2 p-0">
+                      <div className="col-span-1">
+                        <img
+                          src="https://i1.sndcdn.com/artworks-000012560643-t526va-t500x500.jpg"
+                          className="w-full rounded-lg"
+                          alt={`${song.title} cover`}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <ScrollingText 
+                          text={song.title} 
+                          className="text-lg font-bold" 
+                          width="100%"
+                        />
+                        <ScrollingText 
+                          text={song.publisherName} 
+                          className="text-sm text-muted-foreground" 
+                          width="100%"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  {customQueue.some((q) => q.id === song.id) ? (
+                    <ContextMenuItem onClick={() => removeFromPlayList(song.id)}>
+                      Remove from Liked Songs
+                    </ContextMenuItem>
+                  ) : (
+                    <ContextMenuItem onClick={() => addToPlayList(song.id)}>
+                      Add to Liked Songs
+                    </ContextMenuItem>
+                  )}
+                </ContextMenuContent>
+              </ContextMenu>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Music Player */}
-      <div className="w-full md:w-1/3 flex justify-center">
-        {currentSong && (
-          <MusicPlayer
-            track={{
-              id: currentSong.id.toString(),
-              title: currentSong.title,
-              artist: currentSong.artist,
-              coverUrl: "https://i1.sndcdn.com/artworks-000012560643-t526va-t500x500.jpg",
-              // audioUrl: `http://172.19.22.88:3000/stream/${currentSong.id}/192`,
-              
-            }}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            isLooping={isLooping}
-            onLoopToggle={toggleLoop}
-            onShuffle={handleShuffleToggle}
-            isShuffling={isShuffling}
-            manifestSrc={currentSong.manifestUri}
-          />
-        )}
+      {/* Music Player - Fixed dimensions */}
+      <div className="w-full md:w-1/3 h-[70vh] flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
+          {currentSong && (
+            <div className="w-full max-w-md"> {/* Constrains maximum width */}
+              <MusicPlayer
+                track={{
+                  id: currentSong.id.toString(),
+                  title: currentSong.title,
+                  artist: currentSong.publisherName,
+                  coverUrl: "https://i1.sndcdn.com/artworks-000012560643-t526va-t500x500.jpg",
+                }}
+                onNext={handleNext}
+                onPrevious={handlePrevious}
+                isLooping={isLooping}
+                onLoopToggle={toggleLoop}
+                onShuffle={handleShuffleToggle}
+                isShuffling={isShuffling}
+                manifestSrc={currentSong.manifestUri}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Liked Songs */}
-      <div className="w-full md:w-1/3">
+      {/* Liked Songs - Same height as others with internal scrolling */}
+      <div className="w-full md:w-1/3 h-[70vh] flex flex-col">
         <h2 className="text-xl font-bold mb-4">Liked Songs</h2>
         <Card
           onClick={playCustomQueue}
-          className="p-4 cursor-pointer hover:bg-muted rounded-2xl border-2 transition-colors bg-gradient-to-b from-background to-muted/10"
+          className="flex-1 flex flex-col overflow-hidden cursor-pointer hover:bg-muted rounded-2xl border-2 transition-colors bg-gradient-to-b from-background to-muted/10"
         >
-          <CardContent className="p-0">
-            <div className="flex items-center gap-3 mb-4">
+          <CardContent className="p-0 flex flex-col h-full">
+            <div className="flex items-center gap-3 p-4">
               <Heart className="text-red-500 fill-red-500" />
               <h3 className="text-lg font-bold">Liked Songs</h3>
             </div>
-            <div className="max-h-[60vh] overflow-y-auto">
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
               {customQueue.length > 0 ? (
                 customQueue.map((q) => (
                   <div 
@@ -228,11 +227,11 @@ export function
                     }}
                   >
                     <h3 className="font-medium">{q.title}</h3>
-                    <p className="text-sm text-muted-foreground">{q.artist}</p>
+                    <p className="text-sm text-muted-foreground">{q.publisherName}</p>
                   </div>
                 ))
               ) : (
-                <p className="text-muted-foreground">No liked songs yet</p>
+                <p className="text-muted-foreground p-4">No liked songs yet</p>
               )}
             </div>
           </CardContent>
@@ -240,4 +239,119 @@ export function
       </div>
     </div>
   );
+
+  // return (
+  //   <div className="flex flex-col md:flex-row gap-4 p-4">
+  //     {/* Song List */}
+  //     <div className="w-full md:w-1/3 h-[60vh] md:h-[90vh] overflow-y-auto">
+  //       <h2 className="text-xl font-bold mb-4">All Songs</h2>
+  //       <div className="grid grid-cols-1 gap-2">
+  //         {songs.map((song) => (
+  //           <ContextMenu key={song.id}>
+  //             <ContextMenuTrigger>
+  //               <Card
+  //                 className={`p-4 cursor-pointer hover:bg-muted rounded-2xl border-2 transition-colors ${
+  //                   currentSong?.id === song.id ? 'bg-muted/50' : 'bg-gradient-to-b from-background to-muted/10'
+  //                 }`}
+  //                 onClick={() => handleSongSelect(song)}
+  //               >
+  //                 <CardContent className="grid grid-cols-3 gap-2 p-0">
+  //                   <div className="col-span-1">
+  //                     <img
+  //                       src="https://i1.sndcdn.com/artworks-000012560643-t526va-t500x500.jpg"
+  //                       className="w-full rounded-lg"
+  //                       alt={`${song.title} cover`}
+  //                     />
+  //                   </div>
+  //                   <div className="col-span-2">
+  //                     <ScrollingText 
+  //                       text={song.title} 
+  //                       className="text-lg font-bold" 
+  //                       width="100%"
+  //                     />
+  //                     <ScrollingText 
+  //                       text={song.publisherName} 
+  //                       className="text-sm text-muted-foreground" 
+  //                       width="100%"
+  //                     />
+  //                   </div>
+  //                 </CardContent>
+  //               </Card>
+  //             </ContextMenuTrigger>
+
+  //             <ContextMenuContent>
+  //               {customQueue.some((q) => q.id === song.id) ? (
+  //                 <ContextMenuItem onClick={() => removeFromPlayList(song.id)}>
+  //                   Remove from Liked Songs
+  //                 </ContextMenuItem>
+  //               ) : (
+  //                 <ContextMenuItem onClick={() => addToPlayList(song.id)}>
+  //                   Add to Liked Songs
+  //                 </ContextMenuItem>
+  //               )}
+  //             </ContextMenuContent>
+  //           </ContextMenu>
+  //         ))}
+  //       </div>
+  //     </div>
+
+  //     {/* Music Player */}
+  //     <div className="w-full md:w-1/3 flex justify-center">
+  //       {currentSong && (
+  //         <MusicPlayer
+  //           track={{
+  //             id: currentSong.id.toString(),
+  //             title: currentSong.title,
+  //             artist: currentSong.publisherName,
+  //             coverUrl: "https://i1.sndcdn.com/artworks-000012560643-t526va-t500x500.jpg",
+  //             // audioUrl: `http://172.19.22.88:3000/stream/${currentSong.id}/192`,
+              
+  //           }}
+  //           onNext={handleNext}
+  //           onPrevious={handlePrevious}
+  //           isLooping={isLooping}
+  //           onLoopToggle={toggleLoop}
+  //           onShuffle={handleShuffleToggle}
+  //           isShuffling={isShuffling}
+  //           manifestSrc={currentSong.manifestUri}
+  //         />
+  //       )}
+  //     </div>
+
+  //     {/* Liked Songs */}
+  //     <div className="w-full md:w-1/3">
+  //       <h2 className="text-xl font-bold mb-4">Liked Songs</h2>
+  //       <Card
+  //         onClick={playCustomQueue}
+  //         className="p-4 cursor-pointer hover:bg-muted rounded-2xl border-2 transition-colors bg-gradient-to-b from-background to-muted/10"
+  //       >
+  //         <CardContent className="p-0">
+  //           <div className="flex items-center gap-3 mb-4">
+  //             <Heart className="text-red-500 fill-red-500" />
+  //             <h3 className="text-lg font-bold">Liked Songs</h3>
+  //           </div>
+  //           <div className="max-h-[60vh] overflow-y-auto">
+  //             {customQueue.length > 0 ? (
+  //               customQueue.map((q) => (
+  //                 <div 
+  //                   key={q.id} 
+  //                   className="py-2 px-1 hover:bg-muted/50 rounded-lg"
+  //                   onClick={(e) => {
+  //                     e.stopPropagation();
+  //                     handleSongSelect(q);
+  //                   }}
+  //                 >
+  //                   <h3 className="font-medium">{q.title}</h3>
+  //                   <p className="text-sm text-muted-foreground">{q.publisherName}</p>
+  //                 </div>
+  //               ))
+  //             ) : (
+  //               <p className="text-muted-foreground">No liked songs yet</p>
+  //             )}
+  //           </div>
+  //         </CardContent>
+  //       </Card>
+  //     </div>
+  //   </div>
+  // );
 }
