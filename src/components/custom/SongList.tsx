@@ -13,15 +13,11 @@ import { ScrollingText } from "./scrollingText";
 interface Song {
   id: string;
   title: string;
-  artist: string;
+  publisherName: string;
   manifestUri: string;
 }
 
-export function 
-
-
-
-  SongList() {
+export function SongList() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [queue, setQueue] = useState<Song[]>([]);
   const [isUsingCustomQueue, setIsUsingCustomQueue] = useState(false);
@@ -37,7 +33,7 @@ export function
   const fetchSongs = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://localhost:3000/getAllTrack");
+      const response = await fetch("http://192.168.137.1:3000/getAllTrack");
       if (!response.ok) throw new Error("Server is down");
       const data = await response.json();
       setSongs(data);
@@ -156,7 +152,7 @@ export function
                         width="100%"
                       />
                       <ScrollingText 
-                        text={song.artist} 
+                        text={song.publisherName} 
                         className="text-sm text-muted-foreground" 
                         width="100%"
                       />
@@ -188,7 +184,7 @@ export function
             track={{
               id: currentSong.id.toString(),
               title: currentSong.title,
-              artist: currentSong.artist,
+              artist: currentSong.publisherName,
               coverUrl: "https://i1.sndcdn.com/artworks-000012560643-t526va-t500x500.jpg",
               // audioUrl: `http://172.19.22.88:3000/stream/${currentSong.id}/192`,
               
@@ -228,7 +224,7 @@ export function
                     }}
                   >
                     <h3 className="font-medium">{q.title}</h3>
-                    <p className="text-sm text-muted-foreground">{q.artist}</p>
+                    <p className="text-sm text-muted-foreground">{q.publisherName}</p>
                   </div>
                 ))
               ) : (

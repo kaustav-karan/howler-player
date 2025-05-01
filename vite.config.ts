@@ -12,13 +12,14 @@ export default defineConfig({
     },
   },
   server: {
-    port: 80,
+    port: 3001,
+    host: "localhost",
     proxy: {
       stream: {
         target: "http://localhost:3000/stream",
         changeOrigin: true,
         secure: false,
-      },
+      }
     },
   },
 });
